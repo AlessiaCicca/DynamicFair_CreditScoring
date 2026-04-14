@@ -27,6 +27,7 @@ genvar <- function(nsub = 1000,
   # OUTPUT # 
   # A dataframe with nperiod * nsub rows and 6 columns 
   #######################################################################
+  #Definition of scenario: NumberOfTimeInvariante and NumberOfTimeVariant
   if (scenario == "0TI2TV") {
     z <- rep(list(0), nperiod)
     ## Each of size ncov x nsub, for ncov covariates and nsub subjects
