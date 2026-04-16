@@ -11,7 +11,10 @@ traindtv_autocorr_gnrt <- function(nsub = 200,
   Coeff <- RET$coeff
   chngpt <- findsurvint(y = sort(RET$survtime),
                         nper = nperiod, 
-                        rate = 0.10)
+                        rate = 0.85)
+  #We set rate = 0.80 to reflect the credit risk context, where the majority of borrowers do not default during the observation window, 
+  #ensuring that only a small fraction of the true event times fall within the follow-up period.
+  
   rm(RET)
   gc()
   
