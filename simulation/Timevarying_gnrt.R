@@ -44,7 +44,7 @@ tvstimegnrt <- function(nsub = 200,
                         scenario = c("fair", "direct", "proxy", "temporal"), 
                         matsigma = NULL){
 
-  nperiod=12
+  nperiod <- 12
   Data <- matrix(NA, nperiod * nsub, 8)
   colnames(Data) <- c("ID","X1","X2","X3","X4","X5","X6","S")
   Data[, 1] <- rep(1:nsub, each = nperiod)
