@@ -32,6 +32,7 @@ create_ctime <- function(nsub){
 # TEMPORAL:  Sensitive variable influences covariates Zt and bias increases over time -> BetaS=0 Gamma=0.3 (later * t)
 
 create_coeff <- function(nsub, scenario){
+  nperiod <- 12
   Beta1 <- c(1, -1, 1, -1, -0.25, 0.5) 
   Lambda = 0.5
   Alpha = 0
