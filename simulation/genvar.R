@@ -66,7 +66,8 @@ rownames(Data) <- rep(1:nsub, each = nperiod)
 Data[, "S"] <- rep(S, each = nperiod)
 
 ## Transform the normal variables to mimic the Yao et al. (2020) covariates.
-Data[, -c(1:ncovfixed)] <- sapply((ncovfixed + 1):ncov, function(jj) as.vector(t(sapply(z, function(zz) zz[jj, ]))))
+Data[, c("X3","X4","X5","X6")] <- sapply((ncovfixed + 1):ncov, function(jj) as.vector(sapply(z, function(zz) zz[jj, ])))
+#Data[, -c(1:ncovfixed)] <- sapply((ncovfixed + 1):ncov, function(jj) as.vector(t(sapply(z, function(zz) zz[jj, ]))))  I need to remove also S
 
 Data[, "X1"] <- rep(as.numeric(z[[1]][1, ] > 0), each = nperiod)
 Data[, "X2"] <- rep(pnorm(z[[1]][2, ]), each = nperiod)
