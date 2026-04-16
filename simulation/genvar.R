@@ -40,7 +40,8 @@ genvar <- function(nsub = 1000,
   S <- rbinom(nsub, size = 1, prob = 0.3) 
   for (pp in 2:nperiod) {
     z[[pp]] <- matsigma %*% z[[pp - 1]] + 
-      matrix(c(rep(0, n1seq), rnorm(n2seq)), nrow = ncov, ncol = nsub)    
+      matrix(c(rep(0, n1seq), rnorm(n2seq)), nrow = ncov, ncol = nsub, byrow = TRUE)
+  
   }
   
   Data <- matrix(NA, nrow = nperiod * nsub, ncol = ncov + 1)
