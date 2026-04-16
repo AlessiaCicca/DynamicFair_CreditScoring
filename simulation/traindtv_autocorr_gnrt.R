@@ -11,7 +11,8 @@ traindtv_autocorr_gnrt <- function(nsub = 200,
   Coeff <- RET$coeff
   chngpt <- findsurvint(y = sort(RET$survtime),
                         nper = nperiod, 
-                        rate = 0.10)
+                        rate = 0.80)
+  #0.85 sono le persone che non fanno default
   rm(RET)
   gc()
   

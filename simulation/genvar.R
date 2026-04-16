@@ -37,53 +37,58 @@ genvar <- function(nsub = 1000,
   z[[1]] <- matrix(rnorm(ncov * nsub), nrow = ncov, ncol = nsub)   
   n1seq <- ncovfixed * nsub
   n2seq <- (ncov - ncovfixed) * nsub
-  S <- rbinom(nsub, size = 1, prob = 0.4) 
+  S <- rbinom(nsub, size = 1, prob = 0.3) 
+  for (pp in 2:nperiod) {
+    z[[pp]] <- matsigma %*% z[[pp - 1]] + 
+      matrix(c(rep(0, n1seq), rnorm(n2seq)), nrow = ncov, ncol = nsub)    
+  }
+  
+  Data <- matrix(NA, nrow = nperiod * nsub, ncol = ncov + 1)
+  colnames(Data) <- c(paste0("X", 1:ncov), "S")
+  rownames(Data) <- rep(1:nsub, each = nperiod)
+  
+  Data[, "S"] <- rep(S, each = nperiod)
+  
+  
+  Data[, c("X3","X4","X5","X6")] <- sapply((ncovfixed + 1):ncov, function(jj) 
+    as.vector(t(sapply(z, function(zz) zz[jj, ]))))
+  Data[, "X1"] <- rep(as.numeric(z[[1]][1, ] > 0), each = nperiod)
+  Data[, "X2"] <- rep(pnorm(z[[1]][2, ]), each = nperiod)
+  rm(z)
+  
 
-  if (scenario == "fair" | scenario == "direct"){  
-    for (pp in 2:nperiod) {
-      z[[pp]] <- matsigma %*% z[[pp - 1]] + matrix(c(rep(0, n1seq), rnorm(n2seq)), nrow = ncov, ncol = nsub, byrow = TRUE)    
+  Data[, "X3"] <- as.numeric(Data[, "X3"] > 0)
+  Data[, "X4"] <- pnorm(Data[, "X4"])
+  Data[, "X5"] <- (Data[, "X5"] < qnorm(.2)) + 
+    2 * (Data[, "X5"] >= qnorm(.2)) * (Data[, "X5"] < qnorm(.4)) + 
+    3 * (Data[, "X5"] >= qnorm(.4)) * (Data[, "X5"] < qnorm(.6)) + 
+    4 * (Data[, "X5"] >= qnorm(.6)) * (Data[, "X5"] < qnorm(.8)) +
+    5 * (Data[, "X5"] >= qnorm(.8))
+  Data[, "X6"] <- pnorm(Data[, "X6"]) * 2
+  
+  
+  Gamma_vec <- c(0, -1, 0, -1, 0, 1) * Coeff$Gamma  # Coeff$Gamma scala il tutto (0 per fair/direct)
+  
+  if (scenario == "proxy") {
+    S_rep <- rep(S, each = nperiod)
+    time_idx <- rep(1:nperiod, times = nsub)  
+    for (jj in 1:ncov) {
+      if (Gamma_vec[jj] != 0) {
+        Data[, jj] <- Data[, jj] + Gamma_vec[jj] * S_rep
+      }
+    }
+  } else if (scenario == "temporal") {
+    S_rep    <- rep(S, each = nperiod)
+    time_idx <- rep(1:nperiod, times = nsub) 
+    for (jj in 1:ncov) {
+      if (Gamma_vec[jj] != 0) {
+        Data[, jj] <- Data[, jj] + Gamma_vec[jj] * S_rep * log(time_idx)
+      }
     }
   }
-  else if (scenario == "proxy"){  
-    for (pp in 2:nperiod) {
-      z[[pp]] <- matsigma %*% z[[pp - 1]] + matrix(Coeff$Gamma * S, nrow = ncov, ncol = nsub, byrow = TRUE) + matrix(c(rep(0, n1seq), rnorm(n2seq)), nrow = ncov, ncol = nsub, byrow = TRUE)    
-    }
-  }
-  else if (scenario == "temporal" ){  
-    for (pp in 2:nperiod) {
-      z[[pp]] <- matsigma %*% z[[pp - 1]] + matrix(Coeff$Gamma * S * pp, nrow = ncov, ncol = nsub, byrow = TRUE) + matrix(c(rep(0, n1seq), rnorm(n2seq)), nrow = ncov, ncol = nsub, byrow = TRUE)    
-    }
-  }
-  else {
-       stop("Wrong scenario is specified.")
-  }
-      
-Data <- matrix(NA, nrow = nperiod * nsub, ncol = ncov + 1)
-colnames(Data) <- c(paste0("X", 1:ncov), "S")
-rownames(Data) <- rep(1:nsub, each = nperiod)
-
-## Add sensitive variable
-Data[, "S"] <- rep(S, each = nperiod)
-
-## Transform the normal variables to mimic the Yao et al. (2020) covariates.
-Data[, -c(1:ncovfixed)] <- sapply((ncovfixed + 1):ncov, function(jj) as.vector(t(sapply(z, function(zz) zz[jj, ]))))
-
-Data[, "X1"] <- rep(as.numeric(z[[1]][1, ] > 0), each = nperiod)
-Data[, "X2"] <- rep(pnorm(z[[1]][2, ]), each = nperiod)
-rm(z)
-Data[, "X3"] <- as.numeric(Data[, "X3"] > 0)
-Data[, "X4"] <- pnorm(Data[, "X4"])
-Data[, "X5"] <- (Data[, "X5"] < qnorm(.2)) + 
-  2 * (Data[, "X5"] >= qnorm(.2)) * (Data[, "X5"] < qnorm(.4)) + 
-  3 * (Data[, "X5"] >= qnorm(.4)) * (Data[, "X5"] < qnorm(.6)) + 
-  4 * (Data[, "X5"] >= qnorm(.6)) * (Data[, "X5"] < qnorm(.8)) +
-  5 * (Data[, "X5"] >= qnorm(.8))
-Data[, "X6"] <- pnorm(Data[, "X6"]) * 2
-return(Data)
+  
+  return(Data)
 }
-
-
-
 
 
 
