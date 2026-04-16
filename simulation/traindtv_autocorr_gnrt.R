@@ -1,23 +1,13 @@
-#### Updated July 11th: censoring rate 0
 #####################======== Large number of pseudo-subjects ===============#####################
 traindtv_autocorr_gnrt <- function(nsub = 200, 
-                                   model = c("linear", "nonlinear", "interaction"), 
-                                   distribution = c("Exp", "Gtz", "WI"), 
-                                   nperiod = c(4, 8),
                                    matsigma = NULL,
-                                   censor.rate = c("10%", "50%"), 
-                                   SNR = c("low", "high"),
-                                   scenario = c("0TI2TV", "0TI4TV", "1TI4TV", "2TI1TV", "2TI4TV")){
+                                   scenario = c("fair", "direct", "proxy", "temporal")){
   
   nstime <- 1000
-  
+  nperiod <- 12
   RET <- tvstimegnrt(nsub = nstime,
                      scenario = scenario,
-                     model = model,
-                     distribution = distribution,
-                     nperiod = nperiod,
-                     matsigma = matsigma,
-                     SNR = SNR)
+                     matsigma = matsigma)
   Coeff <- RET$coeff
   chngpt <- findsurvint(y = sort(RET$survtime),
                         nper = nperiod, 
@@ -25,35 +15,23 @@ traindtv_autocorr_gnrt <- function(nsub = 200,
   rm(RET)
   gc()
   
-  Data <- as.data.frame(matrix(NA, nperiod * nsub, 13))
-  names(Data) <- c("ID", "X1", "X2", "X3", "X4", "X5", "X6",
-                   "StopT", "Time", "Event", "Theta", "S", "h")
+  Data <- as.data.frame(matrix(NA, nperiod * nsub, 14))
+  names(Data) <- c("ID", "X1", "X2", "X3", "X4", "X5", "X6", "S",
+                   "StopT", "Time", "Event", "Theta", "Su", "h")
   
   Data$Time <- rep(1:nperiod, nsub)
   Data$ID <- rep(1:nsub, each = nperiod)
-  Data[, 2:7] <- genvar(nsub = nsub, 
-                        nperiod = nperiod, 
+  Data[, 2:8] <- genvar(nsub = nsub, 
                         matsigma = matsigma,
                         scenario = scenario)
   Data$StopT <- rep(chngpt, nsub)
   
-  Data$Theta <- create_theta(model = model, 
-                             data = as.matrix(Data[, 2:7]), 
+  Data$Theta <- create_theta(data = as.matrix(Data[, 2:8]), 
                              coeff = Coeff, 
-                             SNR = SNR, 
                              scenario = scenario)
   
-  Hfunc <- switch(distribution,
-                  "Exp" = ExpHfunc,
-                  "WI" = WHfunc,
-                  "Gtz" = GtzHfunc
-  )
-  tfunc <- switch(distribution,
-                  "Exp" = Exptfunc,
-                  "WI" = Wtfunc,
-                  "Gtz" = Gtztfunc
-  )
-  
+  Hfunc <-  ExpHfunc
+  tfunc <- Exptfunc
   TS <- as.vector(rep(c(0, chngpt), nsub))
   
   tlen <- length(TS)
@@ -77,7 +55,7 @@ traindtv_autocorr_gnrt <- function(nsub = 200,
   # Survprob: each column belongs to a subject
   survprob <- exp(-R)
   Data$h <- as.vector(sapply(1:nsub, function(ni) (c(1, survprob[, ni][-nperiod]) - survprob[, ni]) / c(1, survprob[, ni][-nperiod])))
-  Data$S <- as.vector(survprob)
+  Data$Su <- as.vector(survprob)
   rm(survprob)
   
   U <- runif(nsub)
@@ -97,28 +75,9 @@ traindtv_autocorr_gnrt <- function(nsub = 200,
     }
   }
   
-  Data$X7 <- rep(runif(nsub, 0, 1), each = nperiod)
-  Data <- Data[!is.na(Data$Event), ]
-  rm(R)
-  gc()
   
-  if (length(unique(Data$ID)) != nsub){
-    stop("ID length NOT equal to nsub")
-  }
-  
-  nobs <- nrow(Data)
-  Data$X8 <- sample(c(0, 1), nobs, replace = TRUE)
-  Data$X9 <- sample(1:5, nobs, replace = TRUE)
-  Data$X10 <- runif(nobs, 0, 2)
-  
-  
-  Censor.time <- create_ctime(nsub = nsub, 
-                              SNR = SNR, 
-                              model = model, 
-                              distribution = distribution,
-                              censor.rate = censor.rate,
-                              nperiod = nperiod,
-                              scenario = scenario)
+  Censor.time <- create_ctime(nsub = nsub)
+                             
   ###================== Add Censoring =========================================
   for (j in 1:nsub ){
     idxj <- which(Data$ID == j)
@@ -152,9 +111,7 @@ traindtv_autocorr_gnrt <- function(nsub = 200,
   Data$Theta <- NULL
   RET <- NULL
   RET$fullData <- Data
-  RET$Info = list(Model = model, 
-                  DRate = sum(Data$Event) / nsub, 
-                  Dist = distribution, 
+  RET$Info = list(DRate = sum(Data$Event) / nsub, 
                   Coeff = Coeff)
   
   rm(Data)
