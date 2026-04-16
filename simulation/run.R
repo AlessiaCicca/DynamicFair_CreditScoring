@@ -1,6 +1,3 @@
-#I CAMBIAMENTI SONO STATI IL t DA QUALCHE PARTE IL RoW TRUE IN GENVAR E LO 0.10 DEL INVARIANT
-#bisogna controlalre il senso di censor.rate inf
-
 install.packages("openxlsx")
 library(openxlsx)
 library(truncdist)
