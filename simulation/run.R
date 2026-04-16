@@ -1,3 +1,6 @@
+install.packages("truncdist")
+library(truncdist)
+
 # 1.Load file
 source("simulation/utils.R")        
 source("simulation/genvar.R")  
