@@ -23,9 +23,9 @@ genvar <- function(nsub = 1000,
                           nsub = nsub)
   Coeff <- coefficients$Coeff
   
-  ncov = 6
-  ncovfixed = 2
-  nperiod = 12
+  ncov <- 6
+  ncovfixed <- 2
+  nperiod <- 12
   ## First is to generate a normal VAR process
   # z0 = e_0                                                       # Time 0: e is of size ncov times nsub
   # z1 = A * e_0 + e_1                                             # Time 1: e is of size ncov times nsub
