@@ -10,13 +10,12 @@ create_matsigma <- function(){
 
 
 ###### ======== censoring rate: Censor.time in traindtv_autocorr_gnrt.R ======== ######
-# Mantain nperiod=8 (using 12), model=linear and distribution=Exp (easiest), censor.rate = 10% (more realistic) 
+# Mantain nperiod=8, model=linear and distribution=Exp (easiest), censor.rate = 10% (more realistic) 
 # and SNR (How strong is the signal compared to the noise) = "low" (to financial domain)
 create_ctime <- function(nsub){
-    Censor.time <- rep(Inf, nsub)
-    return(Censor.time)
+  Censor.time <- rep(Inf, nsub)
+  return(Censor.time)
 }
-
 
 ###### ======== create coefficient lists: Coeff in Timevarying_gnrt.R ======== ######
 # Mantain nperiod=8 (using 12), model=linear and distribution=Exp (easiest), censor.rate = 10% (more realistic) 
@@ -42,15 +41,15 @@ create_coeff <- function(nsub, scenario){
                             c(0, sort(rtrunc(nperiod - 1, spec = "beta", a = 0.0001, b = 1, shape1 = 0.1, shape2 = 2)) * 900)
   ))
   if(scenario == "fair") {
-    Gamma=0
+    Gamma=0 
     BetaS=0
   }
   else if(scenario == "direct"){
     Gamma=0
-    BetaS=0.3
+    BetaS=1
   }
   else if(scenario == "proxy" | scenario == "temporal"){
-    Gamma=0.3
+    Gamma= 0.3  # X2↓, X4↓, X6↑ → tutti aumentano Fstar per S=1
     BetaS=0
   }
   else {
