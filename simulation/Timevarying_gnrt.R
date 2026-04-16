@@ -1,45 +1,27 @@
 #####################################################################################################
-create_theta <- function(data, scenario, model, coeff, SNR){
-  a <- 1.5
-  if (SNR == "high") a <- 3
-  if (model == "linear"){
-    Fstar <- data %*% coeff$Beta1 + coeff$Beta0[1]
-  } else if (model == "nonlinear"){
-    Fstar <- a * log(abs(data %*% coeff$Beta2 + coeff$Beta0[2])) + coeff$Beta0[1]
-  } else if (model == "interaction"){
-    Fstar <- itct_term(data = data, scenario = scenario, coeff = coeff, SNR = SNR)
+create_theta <- function(data, scenario, coeff){
+  X <- data[, -ncol(data)] 
+  S <- data[, ncol(data)] 
+  if (scenario == "direct"){
+    Fstar <- X %*% coeff$Beta1 + coeff$Beta0[1]
+    Fstar <- Fstar + coeff$BetaS * S
+  }
+  else if (scenario == "fair" | scenario == "proxy" | scenario == "temporal"){
+     Fstar <- X %*% coeff$Beta1 + coeff$Beta0[1] 
   } else {
     stop("Wrong model is set.")
   }
   return(exp(Fstar))
 }
+
 ## Compute the cumulative hazards function
 ExpHfunc <- function(ts1, ts2, theta, coeff){
   coeff$Lambda * theta * (ts1 - ts2)
 }
 
-WHfunc <- function(ts1, ts2, theta, coeff){
-  coeff$Lambda * theta * (ts1 ^ coeff$V - ts2 ^ coeff$V)
-}
-
-GtzHfunc <- function(ts1, ts2, theta, coeff){
-  coeff$Lambda * theta / coeff$Alpha * 
-    (exp(coeff$Alpha * ts1) - exp(coeff$Alpha * ts2))
-}
-
-
 ## Compute the continuous times
 Exptfunc <- function(tall, theta, coeff, t0, rid){
   t0 / coeff$Lambda / theta[rid] + tall[rid]
-}
-
-Wtfunc <- function(tall, theta, coeff, t0, rid){
-  (t0 / coeff$Lambda / theta[rid] + tall[rid] ^ coeff$V) ^ (1 / coeff$V)
-}
-
-Gtztfunc <- function(tall, theta, coeff, t0, rid){
-  t0 <- coeff$Alpha * t0 / coeff$Lambda / theta[rid]
-  log(t0 + exp(coeff$Alpha * tall[rid])) / coeff$Alpha
 }
 
 
@@ -54,55 +36,35 @@ findsurvint <- function(y, nper, rate) {
   # The interval limits to define the periods
   
   int <- quantile(y, probs = seq((1 - rate) / nper, 1 - rate, length.out = nper))
-  
-  int
-  
+  return(int)
 }
 
 #####################======== MAIN FUNCTION ===============#####################
 tvstimegnrt <- function(nsub = 200, 
-                        scenario = c("0TI2TV", "0TI4TV", "1TI4TV", "2TI1TV", "2TI4TV"), 
-                        model = c("linear", "nonlinear", "interaction"), 
-                        distribution = c("Exp", "Gtz", "WI"), 
-                        nperiod = c(4, 8),
-                        matsigma = NULL, 
-                        SNR = c("high", "low")){
-  
-  Data <- matrix(NA, nperiod * nsub, 7)
-  colnames(Data) <- c("ID","X1","X2","X3","X4","X5","X6")
+                        scenario = c("fair", "direct", "proxy", "temporal"), 
+                        matsigma = NULL){
+
+  nperiod=12
+  Data <- matrix(NA, nperiod * nsub, 8)
+  colnames(Data) <- c("ID","X1","X2","X3","X4","X5","X6","S")
   Data[, 1] <- rep(1:nsub, each = nperiod)
-  Data[, 2:7] <- genvar(nsub = nsub, 
-                        nperiod = nperiod, 
+  Data[, 2:8] <- genvar(nsub = nsub, 
                         matsigma = matsigma,
                         scenario = scenario)
   
   ## Set the coefficients and compute the Theta = exp(f(X))
   coeffTS <- create_coeff(scenario = scenario, 
-                          model = model, 
-                          distribution = distribution, 
-                          SNR = SNR, 
-                          nsub = nsub,
-                          nperiod = nperiod)
+                          nsub = nsub)
   Coeff <- coeffTS$Coeff
   TS <- coeffTS$TS
   rm(coeffTS)
   
-  Theta <- create_theta(model = model, 
-                        data = Data[, 2:7], 
+  Theta <- create_theta(data = Data[, 2:8], 
                         coeff = Coeff,
-                        scenario = scenario,
-                        SNR = SNR)
-
-  Hfunc <- switch(distribution,
-                  "Exp" = ExpHfunc,
-                  "WI" = WHfunc,
-                  "Gtz" = GtzHfunc
-  )
-  tfunc <- switch(distribution,
-                  "Exp" = Exptfunc,
-                  "WI" = Wtfunc,
-                  "Gtz" = Gtztfunc
-  )
+                        scenario = scenario)
+                       
+  Hfunc <- ExpHfunc
+  tfunc <- Exptfunc
   
   tlen <- length(TS)
   seqt2 <- nperiod * c(1:(tlen / nperiod)) # each : -nperiod
