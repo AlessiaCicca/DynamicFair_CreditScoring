@@ -27,8 +27,6 @@ testdtv_gnrt = function(data, ntest, id = NULL, period = NULL, y = NULL){
   for (j in 2:maxt) {
     tempdata <- data[data[, period] == j, ]
     indc <- tempdata[, id]
-    # print(length(unique(indc)))
-    
     # number of subjects in the sample provided (must be large enough to make sure that we will
     # have at least ntest subjects for each j=1, ..., maxt
     if (length(unique(indc)) < ntest) stop(sprintf("Number of subjects in %1.0f-th set from the provided sample: %1.0f < ntest!", 
