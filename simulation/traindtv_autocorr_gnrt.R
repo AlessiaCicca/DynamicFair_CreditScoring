@@ -90,12 +90,13 @@ traindtv_autocorr_gnrt <- function(nsub = 200,
       
       TALLjj <- c(0, chngpt)[ID:(ID + 1)]
       TALLjj[2] <- Censor.time[j]
+
+      Sjj <- c(1, Data[idxj, ]$Su)
       
-      Sjj <- c(1, Data[idxj, ]$S)
       
       Hjj <- Hfunc(ts1 = TALLjj[2], ts2 = TALLjj[1], theta = Data[idxj, ][ID, ]$Theta, coeff = Coeff)
-      Data[idxj, ][ID, ]$S <- Sjj[ID] * exp(-Hjj)
-      Data[idxj, ][ID, ]$h <- (Sjj[ID] - Data[idxj, ][ID, ]$S) / Sjj[ID]
+      Data[idxj, ][ID, ]$Su <- Sjj[ID] * exp(-Hjj)
+      Data[idxj, ][ID, ]$h <- (Sjj[ID] - Data[idxj, ][ID, ]$Su) / Sjj[ID]
       if( ID != length(idxj) ){
         Data[idxj, ][(ID + 1):(length(idxj)), ]$Event <- NA
       }
