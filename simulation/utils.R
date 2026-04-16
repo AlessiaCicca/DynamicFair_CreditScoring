@@ -12,6 +12,13 @@ create_matsigma <- function(){
 ###### ======== censoring rate: Censor.time in traindtv_autocorr_gnrt.R ======== ######
 # Mantain nperiod=8, model=linear and distribution=Exp (easiest), censor.rate = 10% (more realistic) 
 # and SNR (How strong is the signal compared to the noise) = "low" (to financial domain)
+#
+# It's null -> The only source of censoring in the new script is the natural censoring arising from the compressed chngpt (the rate = 0.80 mechanism discussed before). 
+# There is no additional administrative censoring imposed on top. 
+#
+# setting Censor.time = Inf is not an arbitrary simplification, but rather the natural result of the calibration process:
+# the natural censoring induced by findsurvint with rate = 0.80 is already sufficient to achieve the target of 80% censoring, 
+# without the need for any additional administrative censoring.
 create_ctime <- function(nsub){
   Censor.time <- rep(Inf, nsub)
   return(Censor.time)
