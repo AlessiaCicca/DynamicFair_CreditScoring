@@ -9,10 +9,20 @@ traindtv_autocorr_gnrt <- function(nsub = 200,
                      scenario = scenario,
                      matsigma = matsigma)
   Coeff <- RET$coeff
+
+  ############################################################
+  # Original Version -> rate=0.10
+  # rate high → quantiles compressed in the left tail → small chngpt → small intervals ts1 - ts2 → small R → exp(-R) close to 1 → high survival ( Many Event=0, NoDefault)
+  # rate = 0.10 → quantiles extend up to the 90th percentile → large chngpt → long intervals → large R → exp(-R) far from 1 → many observed events (Event=1)
+  # Therefore rate in findsurvint acts as a direct lever on the censoring rate of the final dataset.
+  # 
+  # In the credit risk context, survival corresponds to a borrower not defaulting on their loan. Since default is a rare event in real-world credit portfolios,
+  # a high censoring rate of 80% is more realistic, meaning that the majority of subjects will not experience the event within the observation window.
+  ############################################################
   chngpt <- findsurvint(y = sort(RET$survtime),
                         nper = nperiod, 
                         rate = 0.80)
-  #0.85 sono le persone che non fanno default
+ 
   rm(RET)
   gc()
   
