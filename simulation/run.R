@@ -1,9 +1,9 @@
 # 1.Load file
-source("utils.R")        
-source("genvar.R")  
-source("Timevarying_gnrt.R") 
-source("traindtv_autocorr_gnrt.R")   
-source("testdtv_gnrt.R")  
+source("simulation/utils.R")        
+source("simulation/genvar.R")  
+source("simulation/timevarying_gnrt.R") 
+source("simulation/traindtv_autocorr_gnrt.R")   
+source("simulation/testdtv_gnrt.R")  
 
 # 2. Create matsigma
 matsigma <- create_matsigma()
